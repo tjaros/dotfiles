@@ -1,0 +1,28 @@
+# Old account
+IMAPAccount MUNI
+Host mail.muni.cz
+User 492880
+Pass <PASS>
+AuthMechs LOGIN
+# Use TLS
+TLSType IMAPS
+Port 993
+TLSVersions +1.2
+Timeout 120
+
+
+IMAPStore MUNI-remote
+Account MUNI
+
+MaildirStore MUNI-local
+SubFolders Verbatim
+# The trailing "/" is important
+Path ~/.mail/mail.muni.cz/
+Inbox ~/.mail/mail.muni.cz/492880/inbox
+
+Channel MUNI
+Far :MUNI-remote:
+Near :MUNI-local:
+Create Both
+Expunge Both
+SyncState *
