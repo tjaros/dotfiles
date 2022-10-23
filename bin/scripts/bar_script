@@ -1,0 +1,122 @@
+#!/bin/bash
+
+function date_time () {
+    echo $(date +'%B %d %Y %T')
+}
+
+function batt_statt () {
+    bat="$(acpi | cut -d, -f2)"
+    bat=${bat%\%}
+    battery100=""
+    battery80=""
+    battery50=""
+    battery20=""
+    battery0=""
+
+    if [ $bat -gt 89 ]; then
+	bat="$battery100 $bat %"
+    elif [ $bat -gt 79 ];then
+	bat="$battery80 $bat %"
+    elif [ $bat -gt 49 ]; then
+	bat="$battery50 $bat %"
+    elif [ $bat -gt 19]; then
+	bat="$battery20 $bat %"
+    else
+	bat="$battery0 $bat %"
+    fi
+
+    echo "$bat"
+    
+}
+
+function volume_level () {
+    
+    volume=$(pamixer --get-volume)
+
+    state=""
+
+    if [ $volume -gt 90 ]; then
+    	state="━━━━━━━━━━"
+
+    elif [ $volume -gt 80 ]; then
+	state="━━━━━━━━━═"
+	
+    elif [ $volume -gt 70 ]; then
+	state="━━━━━━━━══"
+    
+    elif [ $volume -gt 60 ]; then
+	state="━━━━━━━═══"
+	
+    elif [ $volume -gt 50 ]; then
+	state="━━━━━━════"
+
+    elif [ $volume -gt 40 ]; then
+	state="━━━━━═════"
+	
+    elif [ $volume -gt 30 ]; then
+	state="━━━━══════"
+    
+    elif [ $volume -gt 20 ]; then
+	state="━━━═══════"
+	
+    elif [ $volume -gt 10 ]; then
+	state="━━════════"
+    elif [ $volume -gt 0 ]; then
+	state="━═════════"
+    fi
+
+    echo "$state $volume %"
+}
+
+function net_stat () {
+    status=$(nmcli | grep -e " connected" | head -n 1 )
+
+    msg=""
+
+    if [ -z "$status" ]; then
+	msg="Offline"
+    else 
+	msg="$(echo $status | cut -d" " -f4- )"
+    fi
+
+    echo "$msg"
+
+}
+
+function mem_info() {
+    mem_total=$(grep -e "MemTotal" /proc/meminfo | sed  "s/[^[:digit:]]*\([[:digit:]]*\).*/\1/")
+    mem_free=$(grep -e "MemFree" /proc/meminfo | sed  "s/[^[:digit:]]*\([[:digit:]]*\).*/\1/")
+    mem_buffers=$(grep -e "Buffers" /proc/meminfo | sed  "s/[^[:digit:]]*\([[:digit:]]*\).*/\1/")
+    mem_cache1=$(grep -e "^Cached" /proc/meminfo | sed  "s/[^[:digit:]]*\([[:digit:]]*\).*/\1/")
+    mem_cache2=$(grep -e "SReclaimable" /proc/meminfo | sed  "s/[^[:digit:]]*\([[:digit:]]*\).*/\1/")
+    
+    
+    expression="( $mem_total - $mem_free - $mem_buffers - $mem_cache1 - $mem_cache2 )/(1024), $mem_total/(1024)"
+    format="'%i Mi/ %i Mi'"
+    arg="${format}%(${expression})"
+    echo "print($arg)"|python3
+}
+
+function keyb_i() {
+    if [ -z "$(xset -q | grep "LED mask:  00000000")" ]; then
+	echo "keyb sk"
+    else
+	echo "keyb us"
+    fi
+}
+
+function main () {
+    while true;
+    do
+	bar=""
+	bar="$(keyb_i) | $(net_stat) | $(volume_level) | $(batt_statt) | $(mem_info) | $(date_time)"
+
+
+	xsetroot -name "$bar"
+	sleep 1
+
+    done
+}
+
+main &
+
