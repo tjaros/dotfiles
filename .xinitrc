@@ -48,11 +48,19 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
  unset f
 fi
 
-setxkbmap -option caps:swapescape
+#setxkbmap -option caps:swapescape
+
+## Make caps act as esc when pressed and released, otherwise esc
+
+# make CapsLock behave like Ctrl:
+setxkbmap -option ctrl:nocaps
+
+# make short-pressed Ctrl behave like Escape:
+xcape -e 'Control_L=Escape'
 
 dunst &
 compton &
 nitrogen --restore
-~/script/bar_script
+~/bin/scripts/bar_script &
 exec dwm
 
