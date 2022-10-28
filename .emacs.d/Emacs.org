@@ -309,23 +309,24 @@
 *** lsp-mode
 
 #+begin_src emacs-lisp
-        (defun tj/lsp-mode-setup ()
-          (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-                        (lsp-headerline-breadcrumb-mode))
+  (defun tj/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+                  (lsp-headerline-breadcrumb-mode))
 
-          (use-package lsp-mode
-                        :commands (lsp lsp-deferred)
-                        :hook (lsp-mode . tj/lsp-mode-setup)
-                        :config
-                        (lsp-enable-which-key-integration t)
-                        :bind
-                        (:map evil-normal-state-map
-                              ("gh" . lsp-describe-thing-at-point)
-                              ("gf" . lsp-format-buffer)
-                              ("gR" . lsp-rename)))
+  (use-package lsp-mode
+                  :commands (lsp lsp-deferred)
 
-    (tj/leader-key-def
-      "l"  '(lsp-keymap-prefix :which-key "lsp"))
+                  :hook (lsp-mode . tj/lsp-mode-setup)
+                  :init
+                  (setq lsp-keymap-prefix "C-l")
+                  :config
+                  (lsp-enable-which-key-integration t)
+                  :bind
+                  (:map evil-normal-state-map
+                        ("gh" . lsp-describe-thing-at-point)
+                        ("gf" . lsp-format-buffer)
+                        ("gR" . lsp-rename)))
+
 #+end_src
 *** lsp-ui
 #+begin_src emacs-lisp
@@ -348,9 +349,9 @@
   :bind (:map evil-normal-state-map
               ("gd" . lsp-ui-peek-find-definitions)
               ("gr" . lsp-ui-peek-find-references)
-              ("Ni" . lsp-ui-imenu)))
+              ("Mi" . lsp-ui-imenu)))
  #+end_src
-
+ 
 ** languages
 *** Python
 #+begin_src emacs-lisp
@@ -408,8 +409,6 @@
     (projectile-mode)
     :custom
     ((projectile-completion-system 'default))
-    ;;:bind-keymap
-    ;;("SPC p" . projectile-command-map)
     :init
     ;; NOTE: Set this to the folder where you keep your Git repos!
     (when (file-directory-p "~/dev")
