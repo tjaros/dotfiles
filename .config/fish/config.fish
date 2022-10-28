@@ -6,8 +6,8 @@ alias mv "mv -i"
 alias rm "rm -i"
 alias vi "nvim"
 alias vim "nvim"
-alias mutt "neomutt"
 alias todos "grep -nRI TODO"
+alias kys  "shutdown 0"
 
 set -x GPG_TTY (tty)
 
