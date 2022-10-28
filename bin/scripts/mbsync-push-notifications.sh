@@ -36,5 +36,5 @@ export DISPLAY=:0; export XAUTHORITY=~/.Xauthority
 
 if [ $new -gt 0 ]
 then
-  /usr/bin/dunstify "mbsync" "New mail at $acc!\nNew: $new" -u normal
+  XDG_RUNTIME_DIR=/run/user/$(id -u) /usr/bin/notify-send --icon='/usr/share/icons/breeze-dark/actions/22/mail-message-new.svg' -a "Mbsync" "New mail!" "New: $new Old: $old" -u low
 fi
