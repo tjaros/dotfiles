@@ -141,6 +141,11 @@
   :init
   (marginalia-mode))
 
+(tj/leader-key-def
+  "f"  '(:ignore t  :which-key "vertico")
+  "ff" '(find-file  :which-key "file")
+  "fd" '(find-dired :which-key "dired"))
+
 (use-package helpful
   :bind
   ([remap describe-function] . helpful-function)
@@ -359,3 +364,26 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(setq sendmail-program "/usr/bin/msmtp"
+      send-mail-function #'smtpmail-send-it
+      message-sendmail-f-is-evil t
+      message-sendmail-extra-arguments '("--read-envelope-from")
+      message-send-mail-function #'message-send-mail-with-sendmail)
+
+(require 'mu4e)
+(setq +mu4e-backend 'mbsync)
+
+;; Each path is relative to the path of the maildir you passed to mu
+(set-email-account! "mail.muni.cz"
+  '((mu4e-sent-folder       . "/mail.muni.cz/492880/sent")
+    (mu4e-drafts-folder     . "/mail.muni.cz/492880/drafts")
+    (mu4e-trash-folder      . "/mail.muni.cz/492880/trash")
+    (mu4e-refile-folder     . "/mail.muni.cz/492880/inbox")
+    (smtpmail-smtp-user     . "492880k@mail.muni.cz")
+    (user-mail-address      . "492880k@mail.muni.cz")   
+    (mu4e-compose-signature . "\nTomáš Jaroš"))
+  t)
+
+(setq mu4e-context-policy 'ask-if-none
+      mu4e-compose-context-policy 'always-ask)
