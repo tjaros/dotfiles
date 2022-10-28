@@ -101,6 +101,11 @@
     (evil-collection-init))
 #+end_src
 
+** Tab Widths
+#+begin_src emacs-lisp
+  (setq-default tab-width 4)
+  (setq-default evil-shift-width tab-width)
+#+end_src
 * UI Configuration
 ** Color themes
 #+begin_src emacs-lisp
@@ -278,6 +283,15 @@
 
     (push '("conf-unix" . conf-unix) org-src-lang-modes)
 #+end_src
+** Structure Templates
+#+begin_src emacs-lisp
+  ;; This is needed as of Org 9.2
+  (require 'org-tempo)
+
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+#+end_src
 ** Auto-tangle Configuration Files
 #+begin_src emacs-lisp
   ;; Automatically tangle our Emacs.org config file when we save it
@@ -291,6 +305,101 @@
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tj/org-babel-tangle-config)))
 #+end_src
 * Development
+** IDE
+*** lsp-mode
+
+#+begin_src emacs-lisp
+        (defun tj/lsp-mode-setup ()
+          (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+                        (lsp-headerline-breadcrumb-mode))
+
+          (use-package lsp-mode
+                        :commands (lsp lsp-deferred)
+                        :hook (lsp-mode . tj/lsp-mode-setup)
+                        :config
+                        (lsp-enable-which-key-integration t)
+                        :bind
+                        (:map evil-normal-state-map
+                              ("gh" . lsp-describe-thing-at-point)
+                              ("gf" . lsp-format-buffer)
+                              ("gR" . lsp-rename)))
+
+    (tj/leader-key-def
+      "l"  '(lsp-keymap-prefix :which-key "lsp"))
+#+end_src
+*** lsp-ui
+#+begin_src emacs-lisp
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :config (setq lsp-ui-sideline-show-hover t
+                lsp-ui-sideline-delay 0.5
+                lsp-ui-doc-delay 5
+                lsp-ui-sideline-ignore-duplicates t
+                lsp-ui-doc-position 'botto
+                lsp-ui-doc-alignment 'frame
+                lsp-ui-doc-header nil
+                lsp-ui-doc-include-signature t
+                lsp-ui-doc-use-childframe t)
+  :commands lsp-ui-mode
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-doc-enable nil)
+  :bind (:map evil-normal-state-map
+              ("gd" . lsp-ui-peek-find-definitions)
+              ("gr" . lsp-ui-peek-find-references)
+              ("Ni" . lsp-ui-imenu)))
+ #+end_src
+
+** languages
+*** Python
+#+begin_src emacs-lisp
+(setq python-shell-interpreter "python3")
+(setq python-indent-offset 4)
+
+(use-package elpy
+  :hook (python-mode . lsp-deferred)
+  :custom
+  ;; Use to specify the path to the python executable
+  (elpy-enable)
+  (dap-python-debugger 'debugpy)
+  :config
+  (require 'dap-python)
+  :bind (:map evil-normal-state-map
+              ("gp" . python-pytest-dispatch)))
+
+(setq python-shell-interpreter "ipython"
+        python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True")
+
+(use-package pyvenv
+  :demand t
+  :config
+  (setq pyvenv-workon "emacs")  ; Default venv
+  (pyvenv-tracking-mode 1))  ; Automatically use pyvenv-workon via dir-locals
+
+(use-package lsp-pyright
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))  ; or lsp-deferred
+
+(use-package blacken
+  :after (python)
+  :init
+  (add-hook 'python-mode-hook #'blacken-mode))
+
+(use-package python-pytest)
+
+(use-package pyenv-mode)
+
+(defun projectile-pyenv-mode-set ()
+  "Set pyenv version matching project name."
+  (let ((project (projectile-project-name)))
+    (if (member project (pyenv-mode-versions))
+        (pyenv-mode-set project)
+      (pyenv-mode-unset))))
+
+(add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
+#+end_src
 ** Projectile
 #+begin_src emacs-lisp
   (use-package projectile
@@ -317,6 +426,7 @@
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
   (tj/leader-key-def
+    "g" '(:ignore t :which-key "git")
     "gg" 'magit)
 #+end_src
 
