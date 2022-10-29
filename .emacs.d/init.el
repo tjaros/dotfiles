@@ -293,6 +293,49 @@
               ("gr" . lsp-ui-peek-find-references)
               ("Mi" . lsp-ui-imenu)))
 
+(use-package dap-mode
+  :ensure t
+  :after lsp-mode
+  ;; Uncomment the config below if you want all UI panes to be hidden by default!
+  ;; :custom
+  ;; (lsp-enable-dap-auto-configure nil)
+  ;; :config
+  ;; (dap-ui-mode 1)
+
+  :config
+  (require 'dap-python)
+  ;; Bind `C-c l d` to `dap-hydra` for easy access
+  (general-define-key
+    :keymaps 'lsp-mode-map
+    :prefix lsp-keymap-prefix
+    "d" '(dap-hydra t :wk "debugger")))
+
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.5)
+  (company-begin-commands nil)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
+              ("M-<" . company-select-first)
+              ("M->" . company-select-last))
+        (:map lsp-mode-map
+         ("<tab>" . company-indent-or-complete-common)))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(use-package yasnippet
+  :ensure
+  :config
+  (yas-reload-all)
+  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  (add-hook 'text-mode-hook 'yas-minor-mode))
+
 (setq python-shell-interpreter "python3")
 (setq python-indent-offset 4)
 
@@ -365,25 +408,94 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+(use-package darkroom)
+(tj/leader-key-def
+  "tz" '(darkroom-tentative-mode :which-key "zen mode"))
+
 (setq sendmail-program "/usr/bin/msmtp"
       send-mail-function #'smtpmail-send-it
       message-sendmail-f-is-evil t
       message-sendmail-extra-arguments '("--read-envelope-from")
       message-send-mail-function #'message-send-mail-with-sendmail)
 
-(require 'mu4e)
-(setq +mu4e-backend 'mbsync)
+(use-package mu4e
+  :ensure nil
+  :config
+  ;; Load org-mode integration
+  (require 'org-mu4e)
 
-;; Each path is relative to the path of the maildir you passed to mu
-(set-email-account! "mail.muni.cz"
-  '((mu4e-sent-folder       . "/mail.muni.cz/492880/sent")
-    (mu4e-drafts-folder     . "/mail.muni.cz/492880/drafts")
-    (mu4e-trash-folder      . "/mail.muni.cz/492880/trash")
-    (mu4e-refile-folder     . "/mail.muni.cz/492880/inbox")
-    (smtpmail-smtp-user     . "492880k@mail.muni.cz")
-    (user-mail-address      . "492880k@mail.muni.cz")   
-    (mu4e-compose-signature . "\nTomáš Jaroš"))
-  t)
+  ;; Refresh mail using isync every 10 minutes
+  (setq mu4e-update-interval (* 10 60))
+  (setq mu4e-get-mail-command "mbsync -a")
+  (setq mu4e-maildir "~/.mail")
 
-(setq mu4e-context-policy 'ask-if-none
-      mu4e-compose-context-policy 'always-ask)
+  ;; Use Ivy for mu4e completions (maildir folders, etc)
+  ;;(setq mu4e-completing-read-function #'ivy-completing-read)
+
+  ;; Make sure that moving a message (like to Trash) causes the
+  ;; message to get a new file name.  This helps to avoid the
+  ;; dreaded "UID is N beyond highest assigned" error.
+  ;; See this link for more info: https://stackoverflow.com/a/43461973
+  (setq mu4e-change-filenames-when-moving t)
+
+  ;; Set up contexts for email accounts
+  (setq mu4e-contexts
+        `(,(make-mu4e-context
+            :name "mail.muni.cz"
+            :match-func (lambda (msg) (when msg
+                                        (string-prefix-p "/mail.muni.cz" (mu4e-message-field msg :maildir))))
+            :vars '(
+                    (user-full-name      . "Tomáš Jaroš")
+                    (user-mail-address   . "492880@mail.muni.cz")
+                    (mu4e-sent-folder    . "/mail.muni.cz/492880/sent")
+                    (mu4e-drafts-folder  . "/mail.muni.cz/492880/drafts")
+                    (mu4e-trash-folder   . "/mail.muni.cz/492880/trash")
+                    (mu4e-refile-folder  . "/mail.muni.cz/492880/inbox")
+                    (mu4e-sent-messages-behavior . sent)
+                    ))
+          ))
+
+(setq mu4e-context-policy 'pick-first)
+
+
+  ;; Display options
+  (setq mu4e-view-show-images t)
+  (setq mu4e-view-show-addresses 't)
+
+  ;; Composing mail
+  (setq mu4e-compose-dont-reply-to-self t)
+
+  ;; (See the documentation for `mu4e-sent-messages-behavior' if you have
+  ;; additional non-Gmail addresses and want assign them different
+  ;; behavior.)
+
+  ;; setup some handy shortcuts
+  ;; you can quickly switch to your Inbox -- press ``ji''
+  ;; then, when you want archive some messages, move them to
+  ;; the 'All Mail' folder by pressing ``ma''.
+  (setq mu4e-maildir-shortcuts
+        '(("/mail.muni.cz/492880/inbox"  . ?i)
+          ("/mail.muni.cz/492880/sent"   . ?s)
+          ("/mail.muni.cz/492880/trash"  . ?t)))
+
+  ;; don't keep message buffers around
+  (setq message-kill-buffer-on-exit t)
+
+  (setq tj/mu4e-inbox-query
+        "(maildir:/mail.muni.cz/492880/inbox) AND flag:unread")
+
+  (defun tj/go-to-inbox ()
+    (interactive)
+    (mu4e-headers-search tj/mu4e-inbox-query))
+
+  (tj/leader-key-def
+    "m"  '(:ignore t :which-key "mail")
+    "mm" 'mu4e
+    "mc" 'mu4e-compose-new
+    "mi" 'tj/go-to-inbox
+    "ms" 'mu4e-update-mail-and-index)
+
+  ;; Start mu4e in the background so that it syncs mail periodically
+  (mu4e t))
+
+(setq warning-minimum-level :error)

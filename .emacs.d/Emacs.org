@@ -335,28 +335,77 @@
 #+end_src
 *** lsp-ui
 #+begin_src emacs-lisp
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :config (setq lsp-ui-sideline-show-hover t
-                lsp-ui-sideline-delay 0.5
-                lsp-ui-doc-delay 5
-                lsp-ui-sideline-ignore-duplicates t
-                lsp-ui-doc-position 'botto
-                lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-header nil
-                lsp-ui-doc-include-signature t
-                lsp-ui-doc-use-childframe t)
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil)
-  :bind (:map evil-normal-state-map
-              ("gd" . lsp-ui-peek-find-definitions)
-              ("gr" . lsp-ui-peek-find-references)
-              ("Mi" . lsp-ui-imenu)))
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :config (setq lsp-ui-sideline-show-hover t
+                  lsp-ui-sideline-delay 0.5
+                  lsp-ui-doc-delay 5
+                  lsp-ui-sideline-ignore-duplicates t
+                  lsp-ui-doc-position 'botto
+                  lsp-ui-doc-alignment 'frame
+                  lsp-ui-doc-header nil
+                  lsp-ui-doc-include-signature t
+                  lsp-ui-doc-use-childframe t)
+    :commands lsp-ui-mode
+    :custom
+    (lsp-ui-peek-always-show t)
+    (lsp-ui-sideline-show-hover t)
+    (lsp-ui-doc-enable nil)
+    :bind (:map evil-normal-state-map
+                ("gd" . lsp-ui-peek-find-definitions)
+                ("gr" . lsp-ui-peek-find-references)
+                ("Mi" . lsp-ui-imenu)))
  #+end_src
- 
+
+*** dap debug
+#+begin_src emacs-lisp
+  (use-package dap-mode
+    :ensure t
+    :after lsp-mode
+    ;; Uncomment the config below if you want all UI panes to be hidden by default!
+    ;; :custom
+    ;; (lsp-enable-dap-auto-configure nil)
+    ;; :config
+    ;; (dap-ui-mode 1)
+
+    :config
+    (require 'dap-python)
+    ;; Bind `C-c l d` to `dap-hydra` for easy access
+    (general-define-key
+      :keymaps 'lsp-mode-map
+      :prefix lsp-keymap-prefix
+      "d" '(dap-hydra t :wk "debugger")))
+#+end_src
+*** company 
+#+begin_src emacs-lisp
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.5)
+  (company-begin-commands nil)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
+              ("M-<" . company-select-first)
+              ("M->" . company-select-last))
+        (:map lsp-mode-map
+         ("<tab>" . company-indent-or-complete-common)))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+#+end_src
+*** yasnippet
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :ensure
+  :config
+  (yas-reload-all)
+  (add-hook 'prog-mode-hook 'yas-minor-mode)
+  (add-hook 'text-mode-hook 'yas-minor-mode))
+#+end_src
 ** languages
 *** Python
 #+begin_src emacs-lisp
@@ -440,6 +489,12 @@
     :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
+** Zen mode
+#+begin_src emacs-lisp
+  (use-package darkroom)
+  (tj/leader-key-def
+    "tz" '(darkroom-tentative-mode :which-key "zen mode"))
+#+end_src
 * Utilities
 ** Email
 *** msmtp
@@ -453,7 +508,6 @@
 *** mu4e
 #+begin_src emacs-lisp
   (use-package mu4e
-    :defer 10
     :ensure nil
     :config
     ;; Load org-mode integration
@@ -492,23 +546,6 @@
 
   (setq mu4e-context-policy 'pick-first)
 
-    ;; Prevent mu4e from permanently deleting trashed items
-    ;; This snippet was taken from the following article:
-    ;; http://cachestocaches.com/2017/3/complete-guide-email-emacs-using-mu-and-/
-    (defun remove-nth-element (nth list)
-      (if (zerop nth) (cdr list)
-        (let ((last (nthcdr (1- nth) list)))
-          (setcdr last (cddr last))
-          list)))
-    (setq mu4e-marks (remove-nth-element 5 mu4e-marks))
-    (add-to-list 'mu4e-marks
-                 '(trash
-                   :char ("d" . "▼")
-                   :prompt "dtrash"
-                   :dyn-target (lambda (target msg) (mu4e-get-trash-folder msg))
-                   :action (lambda (docid msg target)
-                             (mu4e~proc-move docid
-                                             (mu4e~mark-check-target target) "-N"))))
 
     ;; Display options
     (setq mu4e-view-show-images t)
