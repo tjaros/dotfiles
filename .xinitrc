@@ -57,10 +57,12 @@ setxkbmap -option ctrl:nocaps
 
 # make short-pressed Ctrl behave like Escape:
 xcape -e 'Control_L=Escape'
+xset r rate 200 60
 
 dunst &
 compton &
 nitrogen --restore
 ~/bin/scripts/bar_script &
+export _JAVA_AWT_NONREPARENTING=1
 exec dwm
 

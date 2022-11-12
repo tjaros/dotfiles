@@ -1,3 +1,6 @@
+;; Garbage collection
+(setq gc-cons-threshold 1073741824)
+
 ;; Initialize package sources
 (require 'package)
 
@@ -9,6 +12,7 @@
 (unless package-archive-contents
  (package-refresh-contents))
 
+
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
    (package-install 'use-package))
@@ -16,36 +20,87 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(setq inhibit-startup-message t)
+;; No GNU argitprop
+   (setq inhibit-startup-message t)
+   ;; No reminders what a scratch buffer is
+   (setq initial-scratch-message nil)
+   ;; No double spaces after periods
+   (setq sentence-end-double-space nil)
+   ;; Prompts in minibuffer not in GUI
+   (setq use-dialog-box nil)
+   ;; Ever copied something else and forgot?
+   (setq save-interprogram-paste-before-kill t)
+   ;; When I say you die you die !
+   (setq confirm-kill-processes nil)
+   ;; Native compilation report warnings , NOPE
+   (setq native-comp-async-report-warnings-errors 'silent)
+   ;; If i scroll cursor stays the same position
+   (setq scroll-preserve-screen-position t)
+   ;; Detailed completions
+   (setq completions-detailed t)
+   ;; don't let the minibuffer muck up my window tiling
+   (setq read-minibuffer-restore-windows t)
+   ;; scope save prompts to individual projects
+   (setq save-some-buffers-default-predicate 'save-some-buffers-root)
+   ;; don't keep duplicate entries in kill ring
+   (setq kill-do-not-save-duplicates t)
 
-(scroll-bar-mode -1)        ; Disable visible scrollbar
-(tool-bar-mode -1)          ; Disable the toolbar
-(tooltip-mode -1)           ; Disable tooltips
-(set-fringe-mode 10)        ; Give some breathing room
 
-(menu-bar-mode -1)          ; Disable the menu bar
 
-;; Set up the visible bell
-(setq visible-bell t)
-;; Line numbers
-(column-number-mode)
-;; Enable line numbers for some modes
-(dolist (mode '(text-mode-hook
-                prog-mode-hook
-                conf-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 1))))
-;; Override some modes which derive from the above
-(dolist (mode '(org-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-;;Set default pitch face
-(set-face-attribute 'default nil :font "FiraCode Nerd Font Mono:pixelsize=14:foundry=CTDB")
+   (scroll-bar-mode -1)        ; Disable visible scrollbar
+   (tool-bar-mode -1)          ; Disable the toolbar
+   (tooltip-mode -1)           ; Disable tooltips
+   (set-fringe-mode 10)        ; Give some breathing room
+   (pixel-scroll-mode)
+
+   (menu-bar-mode -1)          ; Disable the menu bar
+
+   ;; Set up the visible bell
+   (setq visible-bell t)
+   ;; Line number
+   (column-number-mode)
+   ;; Enable line numbers for some modes
+   (dolist (mode '(text-mode-hook
+                   prog-mode-hook
+                   conf-mode-hook))
+     (add-hook mode (lambda () (display-line-numbers-mode 1))))
+   ;; Override some modes which derive from the above
+   (dolist (mode '(org-mode-hook))
+     (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  ;; UTF-8 is a priority
+  (set-charset-priority 'unicode)
+  (prefer-coding-system 'utf-8-unix)
+
+  ;; Touchpad style scrolling & line truncation
+  (setq mouse-wheel-tilt-scroll t
+      mouse-wheel-flip-direction t)
+  (setq-default truncate-lines t)
+
+  (setq type-break-file-name nil)
+  (type-break-mode)
+ ;; Compilation buffers should wrap lines
+ (add-hook 'compilation-mode-hook 'visual-line-mode)
+
+ ;; Tell me i should take break
+(setq type-break-file-name nil)
+(type-break-mode)
+
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+(setq create-lockfiles nil)
+
+;;Set default pitch face 
+(set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 120)
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=20")
+;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
+(set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 120)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 140)
+;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -86,14 +141,70 @@
 (setq-default tab-width 4)
 (setq-default evil-shift-width tab-width)
 
+(defun tj/unbind-bad-keybindings ()
+  "Remove unhelpful keybindings."
+  (-map (lambda (x) (unbind-key x)) '("C-x C-f" ;; find-file-read-only
+                                      "C-x C-d" ;; list-directory
+                                      "C-z" ;; suspend-frame
+                                      "C-x C-z" ;; again
+                                      "<mouse-2>" ;; pasting with mouse-wheel click
+                                      "<C-wheel-down>" ;; text scale adjust
+                                      "<C-wheel-up>" ;; ditto
+                                      "s-n" ;; make-frame
+                                      "s-t" ;; ns-popup-font-panel
+                                      "s-p" ;; ns-print-buffer
+                                      "C-x C-q" ;; read-only-mode
+                                      )))
+(use-package s)
+(use-package dash :config (tj/unbind-bad-keybindings))
+(use-package shut-up)
+
+(use-package multiple-cursors
+  :bind (("C-c C-e m" . #'mc/edit-lines)
+         ("C-c C-e d" . #'mc/mark-all-dwim)))
+
+(setq-default fill-column 128)
+
+(use-package expand-region
+:bind (("C-c n" . er/expand-region)))
+
+(bind-key* "C-c /" #'comment-dwim)
+(bind-key* "C-c 0" #'upcase-dwim)
+
+(use-package smartparens
+  :bind (
+         ("C-c f" .     #'sp-forward-slurp-sexp)
+         ("C-c b" .     #'sp-backward-slurp-sexp)
+         ("C-c F" .     #'sp-forward-barf-sexp)
+         ("C-c B" .     #'sp-backward-barf-sexp)
+         ("C-c s" .     #'sp-splice-sexp))
+  :config
+  (require 'smartparens-config)
+  (setq sp-show-pair-delay 0
+        sp-show-pair-from-inside t)
+  (smartparens-global-mode)
+  (show-smartparens-global-mode t)
+  ;; (set-face-attribute 'sp-pair-overlay-face nil :background "#0E131D")
+  (defun indent-between-pair (&rest _ignored)
+    (newline)
+    (indent-according-to-mode)
+    (forward-line -1)
+    (indent-according-to-mode))
+
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET"))))
+
+(add-hook 'before-save-hook 'whitespace-cleanup)
+(setq require-final-newline t)
+
 (use-package doom-themes
   :ensure t
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
-
+  ;;(load-theme 'doom-one t)
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
   ;; Enable custom neotree theme (all-the-icons must be installed!)
@@ -105,10 +216,33 @@
 
 (use-package all-the-icons)
 
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  ;;(use-package doom-modeline
+  ;;  :ensure t
+  ;;  :init (doom-modeline-mode 1)
+  ;;  :custom ((doom-modeline-height 15)))
+
+  (defun tj/project-relative-file-name (include-prefix)
+  "Return the project-relative filename, or the full path if INCLUDE-PREFIX is t."
+  (letrec
+      ((fullname (if (equal major-mode 'dired-mode) default-directory (buffer-file-name)))
+       (root (project-root (project-current)))
+       (relname (if fullname (file-relative-name fullname root) fullname))
+       (should-strip (and root (not include-prefix))))
+    (if should-strip relname fullname)))
+
+(use-package mood-line
+  :config
+  (defun tj/mood-line-segment-project-advice (oldfun)
+    "Advice to use project-relative file names where possible."
+    (let
+        ((project-relative (ignore-errors (tj/project-relative-file-name nil))))
+         (if
+             (and (project-current) (not org-src-mode) project-relative)
+             (propertize (format "%s  " project-relative) 'face 'mood-line-buffer-name)
+           (funcall oldfun))))
+
+  (advice-add 'mood-line-segment-buffer-name :around #'tj/mood-line-segment-project-advice)
+  (mood-line-mode))
 
 (use-package which-key
   :init (which-key-mode)
@@ -117,17 +251,46 @@
   (setq which-key-idle-delay 0.3))
 
 (use-package vertico
-  :ensure t
-  :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)
-         ("C-f" . vertico-exit)
-         :map minibuffer-local-map
-         ("M-h" . backward-kill-word))
+  :config
+  (vertico-mode)
+  (vertico-mouse-mode)
   :custom
-  (vertico-cycle t)
-  :init
-  (vertico-mode))
+  (vertico-count 22)
+  :bind (:map vertico-map
+              ("C-'"       . #'vertico-quick-exit)
+              ;; Have to rebind this because C-m is translated to RET.
+              ("<return>"  . #'exit-minibuffer)
+              ("C-m"       . #'vertico-insert)
+              ("C-c SPC"   . #'vertico-quick-exit)
+              ("DEL"       . #'vertico-directory-delete-char)))
+
+(use-package consult
+  :config
+  (recentf-mode)
+  (defun tj/yank-pop ()
+    (interactive)
+    (let ((point-before (point)))
+      (consult-yank-pop)
+      (indent-region point-before (point))))
+  :bind (("C-c i"   . #'consult-imenu)
+         ("C-c y"   . #'tj/yank-pop)
+         ("C-c r"   . #'consult-bookmark)
+         ("C-c `"   . #'consult-flymake)
+         ("C-c h"   . #'consult-ripgrep)
+         ("C-h a"   . #'consult-apropos)
+         )
+  :custom
+  (completion-in-region-function #'consult-completion-in-region)
+  (xref-show-xrefs-function #'consult-xref)
+  (xref-show-definitions-function #'consult-xref)
+  (consult-project-root-function #'deadgrep--project-root) ;; ensure ripgrep works
+  )
+
+(use-package ctrlf
+  :config (ctrlf-mode))
+
+(use-package prescient
+  :config (prescient-persist-mode))
 
 (use-package savehist
   :init
@@ -137,14 +300,28 @@
   :after vertico
   :ensure t
   :custom
+  (marginalia-max-relative-age 0)
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
 
+(use-package orderless
+  :custom (completion-styles '(orderless)))
+
+(use-package all-the-icons-completion
+:after (marginalia all-the-icons)
+:hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+:init
+(all-the-icons-completion-mode))
+
 (tj/leader-key-def
-  "f"  '(:ignore t  :which-key "vertico")
+  "f"  '(:ignore t  :which-key "find")
   "ff" '(find-file  :which-key "file")
-  "fd" '(find-dired :which-key "dired"))
+  "fr" '(consult-recent-file :which-key "recent")
+  "fd" '(find-dired :which-key "dir")
+  "b"  '(:ignore t :which-key "buffer")
+  "bb"  '(consult-buffer :which-key "switch")
+  "bk"  '(kill-buffer :which-key "kill"))
 
 (use-package helpful
   :bind
@@ -164,6 +341,10 @@
 
 (tj/leader-key-def
   "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+(use-package ace-window)
+(tj/leader-key-def
+  "w" '(ace-window :which-key "window"))
 
 (defun tj/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -199,6 +380,7 @@
 (use-package org
   :hook (org-mode . tj/org-mode-setup)
   :config
+  (setq org-image-actual-width nil)
   (setq org-ellipsis " ▾")
   (tj/org-font-setup))
 
@@ -209,21 +391,7 @@
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (defun tj/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
-        visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
-
-(use-package visual-fill-column
-  :hook (org-mode . tj/org-mode-visual-fill))
-
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode)
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
-
-(defun tj/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 150
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -254,104 +422,43 @@
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'tj/org-babel-tangle-config)))
 
-(defun tj/lsp-mode-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-                (lsp-headerline-breadcrumb-mode))
+(add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
 
-(use-package lsp-mode
-                :commands (lsp lsp-deferred)
+(use-package ob-async)
 
-                :hook (lsp-mode . tj/lsp-mode-setup)
-                :init
-                (setq lsp-keymap-prefix "C-l")
-                :config
-                (lsp-enable-which-key-integration t)
-                :bind
-                (:map evil-normal-state-map
-                      ("gh" . lsp-describe-thing-at-point)
-                      ("gf" . lsp-format-buffer)
-                      ("gR" . lsp-rename)))
+(shut-up
+(use-package yasnippet)
+(yas-global-mode 1)
 
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :config (setq lsp-ui-sideline-show-hover t
-                lsp-ui-sideline-delay 0.5
-                lsp-ui-doc-delay 5
-                lsp-ui-sideline-ignore-duplicates t
-                lsp-ui-doc-position 'botto
-                lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-header nil
-                lsp-ui-doc-include-signature t
-                lsp-ui-doc-use-childframe t)
-  :commands lsp-ui-mode
+(use-package yasnippet-snippets
+:config
+(yas-reload-all)))
+
+(use-package fancy-dabbrev
+  :bind* (("C-/" . #'dabbrev-completion))
   :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil)
-  :bind (:map evil-normal-state-map
-              ("gd" . lsp-ui-peek-find-definitions)
-              ("gr" . lsp-ui-peek-find-references)
-              ("Mi" . lsp-ui-imenu)))
+  (dabbrev-case-replace nil))
 
-(use-package dap-mode
-  :ensure t
-  :after lsp-mode
-  ;; Uncomment the config below if you want all UI panes to be hidden by default!
-  ;; :custom
-  ;; (lsp-enable-dap-auto-configure nil)
-  ;; :config
-  ;; (dap-ui-mode 1)
-
-  :config
-  (require 'dap-python)
-  ;; Bind `C-c l d` to `dap-hydra` for easy access
-  (general-define-key
-    :keymaps 'lsp-mode-map
-    :prefix lsp-keymap-prefix
-    "d" '(dap-hydra t :wk "debugger")))
-
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.5)
-  (company-begin-commands nil)
-  :bind (:map company-active-map
-              ("<tab>" . company-complete-selection)
-              ("C-n" . company-select-next)
-              ("C-p" . company-select-previous)
-              ("M-<" . company-select-first)
-              ("M->" . company-select-last))
-        (:map lsp-mode-map
-         ("<tab>" . company-indent-or-complete-common)))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
-(use-package yasnippet
-  :ensure
-  :config
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
+(setq abbrev-suggest t)
 
 (setq python-shell-interpreter "python3")
 (setq python-indent-offset 4)
 
-(use-package elpy
-  :hook (python-mode . lsp-deferred)
-  :custom
-  ;; Use to specify the path to the python executable
-  (elpy-enable)
-  (dap-python-debugger 'debugpy)
-  :config
-  (require 'dap-python)
-  :bind (:map evil-normal-state-map
-              ("gp" . python-pytest-dispatch)))
+;;(use-package elpy
+;;  :hook (python-mode . lsp-deferred)
+;;  :custom
+;;  ;; Use to specify the path to the python executable
+;;  (elpy-enable)
+;;  (dap-python-debugger 'debugpy)
+;;  :config
+;;  (require 'dap-python)
+;;  :bind (:map evil-normal-state-map
+;;              ("gp" . python-pytest-dispatch)))
 
 (setq python-shell-interpreter "ipython"
         python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True")
+
+(use-package lsp-pyright)
 
 (use-package pyvenv
   :demand t
@@ -359,10 +466,6 @@
   (setq pyvenv-workon "emacs")  ; Default venv
   (pyvenv-tracking-mode 1))  ; Automatically use pyvenv-workon via dir-locals
 
-(use-package lsp-pyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred))))  ; or lsp-deferred
 
 (use-package blacken
   :after (python)
@@ -381,6 +484,22 @@
       (pyenv-mode-unset))))
 
 (add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
+
+(c-set-offset 'substatement-open 0)
+(c-set-offset 'innamespace 0)
+(c-set-offset 'brace-list-open 0)
+(setq c-basic-offset 4)
+(use-package cmake-mode)
+
+(setq lsp-clients-clangd-args
+		 '("-j=8"
+		   "--header-insertion=never"
+		   "--all-scopes-completion"
+		   "--background-index"
+		   "--clang-tidy"
+		   "--compile-commands-dir=build"
+		   "--cross-file-rename"
+		   "--suggest-missing-includes"))
 
 (use-package projectile
   :diminish projectile-mode
@@ -411,6 +530,13 @@
 (use-package darkroom)
 (tj/leader-key-def
   "tz" '(darkroom-tentative-mode :which-key "zen mode"))
+
+(shut-up
+(use-package tree-sitter
+  :config
+  (add-hook 'prog-mode-hook 'tree-sitter-mode)
+  (add-hook 'prog-mode-hook 'tree-sitter-hl-mode))
+(use-package tree-sitter-langs))
 
 (setq sendmail-program "/usr/bin/msmtp"
       send-mail-function #'smtpmail-send-it
@@ -446,6 +572,7 @@
                                         (string-prefix-p "/mail.muni.cz" (mu4e-message-field msg :maildir))))
             :vars '(
                     (user-full-name      . "Tomáš Jaroš")
+                    (smtpmail-smtp-user  . "492880@mail.muni.cz")
                     (user-mail-address   . "492880@mail.muni.cz")
                     (mu4e-sent-folder    . "/mail.muni.cz/492880/sent")
                     (mu4e-drafts-folder  . "/mail.muni.cz/492880/drafts")
@@ -474,15 +601,15 @@
   ;; then, when you want archive some messages, move them to
   ;; the 'All Mail' folder by pressing ``ma''.
   (setq mu4e-maildir-shortcuts
-        '(("/mail.muni.cz/492880/inbox"  . ?i)
-          ("/mail.muni.cz/492880/sent"   . ?s)
-          ("/mail.muni.cz/492880/trash"  . ?t)))
+        '(("/inbox"  . ?i)
+          ("/sent"   . ?s)
+          ("/trash"  . ?t)))
 
   ;; don't keep message buffers around
   (setq message-kill-buffer-on-exit t)
 
   (setq tj/mu4e-inbox-query
-        "(maildir:/mail.muni.cz/492880/inbox) AND flag:unread")
+        "(maildir:/inbox)");;AND flag:unread")
 
   (defun tj/go-to-inbox ()
     (interactive)
@@ -498,4 +625,33 @@
   ;; Start mu4e in the background so that it syncs mail periodically
   (mu4e t))
 
+(setq mm-sign-option 'guided)
+(setq mm-encrypt-option 'guided)
+
+(use-package vterm
+  :ensure t)
+(tj/leader-key-def
+  "<RET>" 'vterm)
+
 (setq warning-minimum-level :error)
+
+(use-package ligature
+  :config
+  ;; Enable ligatures in programming modes                                                           
+(ligature-set-ligatures 't '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                                     ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                     "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                     "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                     "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                     "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                     "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                     "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                     "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+
+(global-ligature-mode t))
+
+(defun open-init-file ()
+  "Open this very file."
+  (interactive)
+  (find-file "~/.emacs.d/Emacs.org"))
