@@ -98,26 +98,26 @@
 
   ;; Tell me i should take break
  (setq type-break-file-name nil)
- (type-break-mode) 
+ (type-break-mode)
 
 #+end_src
 ** No garbage backups and autosaves
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
  (setq make-backup-files nil)
  (setq auto-save-default nil)
  (setq create-lockfiles nil)
 #+end_src
 ** Font config
 #+begin_src emacs-lisp
-  ;;Set default pitch face 
-  (set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 120)
+  ;;Set default pitch face
+  (set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 130)
 
   ;; Set the fixed pitch face
   ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
-  (set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 120)
-  
+  (set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 140)
+
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 140)
+  (set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 180)
   ;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 #+end_src
 
@@ -126,7 +126,7 @@
 #+begin_src emacs-lisp
   ;; Make ESC quit prompts
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-  
+
   ;; General evil setup
   (use-package general
     :init
@@ -322,7 +322,7 @@
     :bind (("C-c i"   . #'consult-imenu)
            ("C-c y"   . #'tj/yank-pop)
            ("C-c r"   . #'consult-bookmark)
-           ("C-c `"   . #'consult-flymake)
+           ;;("C-c `"   . #'consult-flymake)
            ("C-c h"   . #'consult-ripgrep)
            ("C-h a"   . #'consult-apropos)
            )
@@ -520,73 +520,12 @@
 #+end_src
 * Development
 ** IDE
-*** lsp-mode OFF 
-+begin_src emacs-lisp :tangle no
-  (defun tj/lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-                  (lsp-headerline-breadcrumb-mode))
-
-  (use-package lsp-mode
-                  :commands (lsp lsp-deferred)
-
-                  :hook (lsp-mode . tj/lsp-mode-setup)
-                  :init
-                  (setq lsp-keymap-prefix "C-l")
-                  :config
-                  (lsp-enable-which-key-integration t))
-
-+end_src
-*** lsp-ui OFF
-+begin_src emacs-lisp :tangle no
-  (use-package lsp-ui
-    :hook (lsp-mode . lsp-ui-mode)
-    :config (setq lsp-ui-sideline-show-hover t
-                  lsp-ui-sideline-delay 0.5
-                  lsp-ui-doc-delay 5
-                  lsp-ui-sideline-ignore-duplicates t
-                  lsp-ui-doc-position 'botto
-                  lsp-ui-doc-alignment 'frame
-                  lsp-ui-doc-header nil
-                  lsp-ui-doc-include-signature t
-                  lsp-ui-doc-use-childframe t)
-    :commands lsp-ui-mode
-    :custom
-    (lsp-ui-peek-always-show t)
-    (lsp-ui-sideline-show-hover t)
-    (lsp-ui-doc-enable nil)
-    :bind (:map evil-normal-state-map
-                ("gd" . lsp-ui-peek-find-definitions)
-                ("gr" . lsp-ui-peek-find-references)
-                ("Mi" . lsp-ui-imenu)))
-+end_src
-*** lsp-treemacs - OFF
-+begin_src emacs-lisp :tangle no
-(use-package lsp-treemacs
-  :after lsp)
-+end_src
-*** company - OFF
-+begin_src emacs-lisp :tangle no
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.5)
-  (company-begin-commands nil)
-  :bind (:map company-active-map
-              ("<tab>" . company-complete-selection)
-              ("C-n" . company-select-next)
-              ("C-p" . company-select-previous)
-              ("M-<" . company-select-first)
-              ("M->" . company-select-last))
-        (:map lsp-mode-map
-         ("<tab>" . company-indent-or-complete-common)))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-+end_src
-*** lsp-bridge 
-+begin_src emacs-lisp :tangle no
+*** Performance
+#+begin_src emacs-lisp
+(setq read-process-output-max (* 1024 1024 )) ; 1mb
+#+end_src
+*** lsp-bridge
+#+begin_src emacs-lisp
   ;; Requirements :
   ;; emacs 28+
   ;; pip3 install epc orjson six
@@ -600,75 +539,53 @@
   (require 'lsp-bridge)
   (global-lsp-bridge-mode)
 
-
-
-
   (tj/leader-key-def
-    "l"   '(:ignore t :which-key "lsp-bridge")
-    "ld"  '(:ignore t :which-key "Find definition")
-    "ldd" '(lsp-bridge-find-def-other-window :which-key "Other window")
-    "ldg" '(lsp-bridge-find-def :which-key "This window")
-    "li"  '(:ignore t :which-key "Find implementation")
-    "lii" '(lsp-bridge-find-impl-other-window :which-key "Other window")
-    "lig" '(lsp-bridge-find-impl :which-key "This window")
-    "lR"  '(:ignore t :which-key "Find references")
-    "lRR" '(lsp-bridge-find-impl-other-window :which-key "Other window")
-    "lRg" '(lsp-bridge-find-impl :which-key "This window")
-    "lr"  '(lsp-bridge-rename :which-key "Rename")
-    "lp"  '(lsp-bridge-restart-process :which-key "Restart lsp-bridge")
-    "lk"  '(lsp-bridge-kill-process :which-key "Kill all processes")
+    "l"    '(:ignore t :which-key "lsp-bridge")
+
+    "lf"   '(:ignore t :which-key "Find")
+    "lfd"  '(:ignore t :which-key "Find definition")
+    "lfdd" '(lsp-bridge-find-def-other-window :which-key "Other window")
+    "lfdg" '(lsp-bridge-find-def :which-key "This window")
+    "lfi"  '(:ignore t :which-key "Find implementation")
+    "lfii" '(lsp-bridge-find-impl-other-window :which-key "Other window")
+    "lfig" '(lsp-bridge-find-impl :which-key "This window")
+    "lfr"  '(lsp-bridge-find-references :which-key "Find references")
+
+    "lr"   '(lsp-bridge-rename :which-key "Rename")
+    "ld"   '(lsp-bridge-popup-documentation :which-key "Popup documentation")
+
+    "ll"  '(:ignore t :which-key "Linter")
+    "lll" '(lsp-bridge-diagnostic-list :which-key "List diagnostic")
+    "lli" '(lsp-bridge-diagnostic-ignore :which-key "Ignore diagnostic")
+
+    "lp"   '(lsp-bridge-restart-process :which-key "Restart lsp-bridge")
+    "lk"   '(lsp-bridge-kill-process :which-key "Kill all processes")
     )
 
     (define-key evil-insert-state-map (kbd "C-n") 'acm-select-next)
     (define-key evil-insert-state-map (kbd "C-p") 'acm-select-prev)
-    (define-key evil-insert-state-map (kbd "C-,") 'acm-select-last)
-    (define-key evil-insert-state-map (kbd "C-.") 'acm-select-first)
-    (define-key evil-insert-state-map (kbd "C-H") 'acm-insert-common)
+
+    (define-key evil-insert-state-map (kbd "C-,") 'acm-doc-scroll-down)
+    (define-key evil-insert-state-map (kbd "C-.") 'acm-doc-scroll-up)
+    (define-key evil-normal-state-map (kbd "C-,") 'lsp-bridge-popup-documentation-scroll-down)
+    (define-key evil-normal-state-map (kbd "C-.") 'lsp-bridge-popup-documentation-scroll-up)
+
     (define-key evil-insert-state-map (kbd "C-d") 'acm-doc-toggle)
 
+
     (setq acm-enable-icon nil)
-    (setq acm-candidate-match-function 'orderless-prefixes)
-+end_src
+    (setq acm-candidate-match-function 'orderless-flex)
+#+end_src
 *** yasnippets
 #+begin_src emacs-lisp
-  (shut-up
-  (use-package yasnippet)
-  (yas-global-mode 1)
+(use-package yasnippet
+  :defer 1
+  :diminish yas-minor-mode
+  :config (yas-global-mode))
 
-  (use-package yasnippet-snippets
-  :config
-  (yas-reload-all)))
-#+end_src
-*** dap debug OFF
-+begin_src emacs-lisp :tangle no
-  (use-package dap-mode
-    :ensure t
-    ;; Uncomment the config below if you want all UI panes to be hidden by default!
-     :custom
-     (lsp-enable-dap-auto-configure nil)
-     :config
-     (dap-ui-mode 1)
-
-    :config
-    (require 'dap-python)
-    (require 'dap-gdb-lldb)
-    
-    (when (not (file-exists-p (expand-file-name ".extension" user-emacs-directory)))
-        (dap-gdb-lldb-setup t))
-    ;; Bind `C-c l d` to `dap-hydra` for easy access
-    (general-define-key
-      :keymaps 'lsp-mode-map
-      :prefix lsp-keymap-prefix
-      "d" '(dap-hydra t :wk "debugger")))
-+end_src
-*** dabbrev
-#+begin_src emacs-lisp
-  (use-package fancy-dabbrev
-    :bind* (("C-/" . #'dabbrev-completion))
-    :custom
-    (dabbrev-case-replace nil))
-
-  (setq abbrev-suggest t)
+(use-package yasnippet-snippets
+  :after yasnippet
+  :config (yasnippet-snippets-initialize))
 #+end_src
 ** languages
 *** Python
@@ -676,21 +593,8 @@
   (setq python-shell-interpreter "python3")
   (setq python-indent-offset 4)
 
-  ;;(use-package elpy
-  ;;  :hook (python-mode . lsp-deferred)
-  ;;  :custom
-  ;;  ;; Use to specify the path to the python executable
-  ;;  (elpy-enable)
-  ;;  (dap-python-debugger 'debugpy)
-  ;;  :config
-  ;;  (require 'dap-python)
-  ;;  :bind (:map evil-normal-state-map
-  ;;              ("gp" . python-pytest-dispatch)))
-
   (setq python-shell-interpreter "ipython"
           python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True")
-
-  (use-package lsp-pyright)
 
   (use-package pyvenv
     :demand t
@@ -726,14 +630,14 @@
   (use-package cmake-mode)
 
   (setq lsp-clients-clangd-args
-		   '("-j=8"
-			 "--header-insertion=never"
-			 "--all-scopes-completion"
-			 "--background-index"
-			 "--clang-tidy"
-			 "--compile-commands-dir=build"
-			 "--cross-file-rename"
-			 "--suggest-missing-includes"))
+           '("-j=8"
+             "--header-insertion=never"
+             "--all-scopes-completion"
+             "--background-index"
+             "--clang-tidy"
+             "--compile-commands-dir=build"
+             "--cross-file-rename"
+             "--suggest-missing-includes"))
 #+end_src
 ** Projectile
 #+begin_src emacs-lisp
@@ -880,7 +784,7 @@
 #+end_src
 
 *** Options
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (setq mm-sign-option 'guided)
   (setq mm-encrypt-option 'guided)
 #+end_src
@@ -894,13 +798,13 @@
 * Misc
 ** Disable init warnings
 #+begin_src emacs-lisp
- (setq warning-minimum-level :error) 
+ (setq warning-minimum-level :error)
 #+end_src
 ** Ligatures
 #+begin_src emacs-lisp
     (use-package ligature
     :config
-    ;; Enable ligatures in programming modes                                                           
+    ;; Enable ligatures in programming modes
   (ligature-set-ligatures 't '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
                                        ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
                                        "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
@@ -917,8 +821,42 @@
 
 ** Open this file
 #+begin_src emacs-lisp
-(defun open-init-file ()
+(defun open-config-file ()
   "Open this very file."
   (interactive)
   (find-file "~/.emacs.d/Emacs.org"))
+#+end_src
+
+** Insert current date
+#+begin_src emacs-lisp
+(defun tj/insert-current-date ()
+  "Insert the current date (Y-m-d) at point."
+  (interactive)
+  (insert (shell-command-to-string "echo -n $(date +%Y-%m-%d)")))
+#+end_src
+
+** Check if files same on disk
+#+begin_src emacs-lisp
+(defun tj/check-file-modification (&optional _)
+  "Clear modified bit on all unmodified buffers."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and buffer-file-name (buffer-modified-p) (not (file-remote-p buffer-file-name)) (current-buffer-matches-file-p))
+        (set-buffer-modified-p nil)))))
+
+(defun current-buffer-matches-file-p ()
+  "Return t if the current buffer is identical to its associated file."
+  (autoload 'diff-no-select "diff")
+  (when buffer-file-name
+    (diff-no-select buffer-file-name (current-buffer) nil 'noasync)
+    (with-current-buffer "*Diff*"
+      (and (search-forward-regexp "^Diff finished \(no differences\)\." (point-max) 'noerror) t))))
+
+;; (advice-add 'save-some-buffers :before #'pt/check-file-modification)
+
+;; (add-hook 'before-save-hook #'pt/check-file-modification)
+;; (add-hook 'kill-buffer-hook #'pt/check-file-modification)
+(advice-add 'magit-status :before #'tj/check-file-modification)
+(advice-add 'save-buffers-kill-terminal :before #'tj/check-file-modification)
 #+end_src

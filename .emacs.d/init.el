@@ -91,15 +91,15 @@
 (setq auto-save-default nil)
 (setq create-lockfiles nil)
 
-;;Set default pitch face 
-(set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 120)
+;;Set default pitch face
+(set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 130)
 
 ;; Set the fixed pitch face
 ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
-(set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 140)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 140)
+(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 180)
 ;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 
 ;; Make ESC quit prompts
@@ -275,7 +275,7 @@
   :bind (("C-c i"   . #'consult-imenu)
          ("C-c y"   . #'tj/yank-pop)
          ("C-c r"   . #'consult-bookmark)
-         ("C-c `"   . #'consult-flymake)
+         ;;("C-c `"   . #'consult-flymake)
          ("C-c h"   . #'consult-ripgrep)
          ("C-h a"   . #'consult-apropos)
          )
@@ -426,39 +426,72 @@
 
 (use-package ob-async)
 
-(shut-up
-(use-package yasnippet)
-(yas-global-mode 1)
+(setq read-process-output-max (* 1024 1024 )) ; 1mb
+
+;; Requirements :
+;; emacs 28+
+;; pip3 install epc orjson six
+;; postframe, markdown-mode, yasnippet
+
+
+;;git clone https://github.com/manateelazycat/lsp-bridge.git ~/.emacs.d/lsp-bridge
+(add-to-list 'load-path "~/.emacs.d/lsp-bridge/")
+
+(require 'posframe)
+(require 'lsp-bridge)
+(global-lsp-bridge-mode)
+
+(tj/leader-key-def
+  "l"    '(:ignore t :which-key "lsp-bridge")
+
+  "lf"   '(:ignore t :which-key "Find")
+  "lfd"  '(:ignore t :which-key "Find definition")
+  "lfdd" '(lsp-bridge-find-def-other-window :which-key "Other window")
+  "lfdg" '(lsp-bridge-find-def :which-key "This window")
+  "lfi"  '(:ignore t :which-key "Find implementation")
+  "lfii" '(lsp-bridge-find-impl-other-window :which-key "Other window")
+  "lfig" '(lsp-bridge-find-impl :which-key "This window")
+  "lfr"  '(lsp-bridge-find-references :which-key "Find references")
+
+  "lr"   '(lsp-bridge-rename :which-key "Rename")
+  "ld"   '(lsp-bridge-popup-documentation :which-key "Popup documentation")
+
+  "ll"  '(:ignore t :which-key "Linter")
+  "lll" '(lsp-bridge-diagnostic-list :which-key "List diagnostic")
+  "lli" '(lsp-bridge-diagnostic-ignore :which-key "Ignore diagnostic")
+
+  "lp"   '(lsp-bridge-restart-process :which-key "Restart lsp-bridge")
+  "lk"   '(lsp-bridge-kill-process :which-key "Kill all processes")
+  )
+
+  (define-key evil-insert-state-map (kbd "C-n") 'acm-select-next)
+  (define-key evil-insert-state-map (kbd "C-p") 'acm-select-prev)
+
+  (define-key evil-insert-state-map (kbd "C-,") 'acm-doc-scroll-down)
+  (define-key evil-insert-state-map (kbd "C-.") 'acm-doc-scroll-up)
+  (define-key evil-normal-state-map (kbd "C-,") 'lsp-bridge-popup-documentation-scroll-down)
+  (define-key evil-normal-state-map (kbd "C-.") 'lsp-bridge-popup-documentation-scroll-up)
+
+  (define-key evil-insert-state-map (kbd "C-d") 'acm-doc-toggle)
+
+
+  (setq acm-enable-icon nil)
+  (setq acm-candidate-match-function 'orderless-flex)
+
+(use-package yasnippet
+  :defer 1
+  :diminish yas-minor-mode
+  :config (yas-global-mode))
 
 (use-package yasnippet-snippets
-:config
-(yas-reload-all)))
-
-(use-package fancy-dabbrev
-  :bind* (("C-/" . #'dabbrev-completion))
-  :custom
-  (dabbrev-case-replace nil))
-
-(setq abbrev-suggest t)
+  :after yasnippet
+  :config (yasnippet-snippets-initialize))
 
 (setq python-shell-interpreter "python3")
 (setq python-indent-offset 4)
 
-;;(use-package elpy
-;;  :hook (python-mode . lsp-deferred)
-;;  :custom
-;;  ;; Use to specify the path to the python executable
-;;  (elpy-enable)
-;;  (dap-python-debugger 'debugpy)
-;;  :config
-;;  (require 'dap-python)
-;;  :bind (:map evil-normal-state-map
-;;              ("gp" . python-pytest-dispatch)))
-
 (setq python-shell-interpreter "ipython"
         python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True")
-
-(use-package lsp-pyright)
 
 (use-package pyvenv
   :demand t
@@ -492,14 +525,14 @@
 (use-package cmake-mode)
 
 (setq lsp-clients-clangd-args
-		 '("-j=8"
-		   "--header-insertion=never"
-		   "--all-scopes-completion"
-		   "--background-index"
-		   "--clang-tidy"
-		   "--compile-commands-dir=build"
-		   "--cross-file-rename"
-		   "--suggest-missing-includes"))
+         '("-j=8"
+           "--header-insertion=never"
+           "--all-scopes-completion"
+           "--background-index"
+           "--clang-tidy"
+           "--compile-commands-dir=build"
+           "--cross-file-rename"
+           "--suggest-missing-includes"))
 
 (use-package projectile
   :diminish projectile-mode
@@ -637,7 +670,7 @@
 
 (use-package ligature
   :config
-  ;; Enable ligatures in programming modes                                                           
+  ;; Enable ligatures in programming modes
 (ligature-set-ligatures 't '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
                                      ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
                                      "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
@@ -651,7 +684,35 @@
 
 (global-ligature-mode t))
 
-(defun open-init-file ()
+(defun open-config-file ()
   "Open this very file."
   (interactive)
   (find-file "~/.emacs.d/Emacs.org"))
+
+(defun tj/insert-current-date ()
+  "Insert the current date (Y-m-d) at point."
+  (interactive)
+  (insert (shell-command-to-string "echo -n $(date +%Y-%m-%d)")))
+
+(defun tj/check-file-modification (&optional _)
+  "Clear modified bit on all unmodified buffers."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and buffer-file-name (buffer-modified-p) (not (file-remote-p buffer-file-name)) (current-buffer-matches-file-p))
+        (set-buffer-modified-p nil)))))
+
+(defun current-buffer-matches-file-p ()
+  "Return t if the current buffer is identical to its associated file."
+  (autoload 'diff-no-select "diff")
+  (when buffer-file-name
+    (diff-no-select buffer-file-name (current-buffer) nil 'noasync)
+    (with-current-buffer "*Diff*"
+      (and (search-forward-regexp "^Diff finished \(no differences\)\." (point-max) 'noerror) t))))
+
+;; (advice-add 'save-some-buffers :before #'pt/check-file-modification)
+
+;; (add-hook 'before-save-hook #'pt/check-file-modification)
+;; (add-hook 'kill-buffer-hook #'pt/check-file-modification)
+(advice-add 'magit-status :before #'tj/check-file-modification)
+(advice-add 'save-buffers-kill-terminal :before #'tj/check-file-modification)
