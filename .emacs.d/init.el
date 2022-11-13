@@ -92,14 +92,14 @@
 (setq create-lockfiles nil)
 
 ;;Set default pitch face
-(set-face-attribute 'default nil :font "PragmataPro Mono Liga" :height 130)
+(set-face-attribute 'default nil :font "PragmataPro Mono Liga:pixelsize=16:antialias=true:autohint=true" )
 
 ;; Set the fixed pitch face
 ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
-(set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga" :height 140)
+(set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga:pixelsize=16:antialias=true:autohint=true")
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga" :height 180)
+(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga:pixelsize=20:antialias=true:autohint=true")
 ;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 
 ;; Make ESC quit prompts
@@ -198,21 +198,34 @@
 (add-hook 'before-save-hook 'whitespace-cleanup)
 (setq require-final-newline t)
 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;;(load-theme 'doom-one t)
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+;;(use-package doom-themes
+;;  :ensure t
+;;  :config
+;;  ;; Global settings (defaults)
+;;  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+;;        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+;;  ;;(load-theme 'doom-one t)
+;;  ;; Enable flashing mode-line on errors
+;;  (doom-themes-visual-bell-config)
+;;  ;; Enable custom neotree theme (all-the-icons must be installed!)
+;;  (doom-themes-neotree-config)
+;;  ;; Corrects (and improves) org-mode's native fontification.
+;;  (doom-themes-org-config))
 
-(load-theme 'doom-palenight t)
+;;(load-theme 'modus-vivendi t)
+
+(use-package spaceway-theme
+:ensure nil
+:load-path "~/.emacs.d/lisp/spaceway/"
+:config
+(global-hl-line-mode t)
+(set-cursor-color "#dc322f")
+;; (when my/my-system
+;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+(load-theme 'spaceway t))
+
+(global-hl-line-mode)
 
 (use-package all-the-icons)
 
@@ -435,7 +448,7 @@
 
 
 ;;git clone https://github.com/manateelazycat/lsp-bridge.git ~/.emacs.d/lsp-bridge
-(add-to-list 'load-path "~/.emacs.d/lsp-bridge/")
+(add-to-list 'load-path "~/.emacs.d/lisp/lsp-bridge/")
 
 (require 'posframe)
 (require 'lsp-bridge)
@@ -716,3 +729,5 @@
 ;; (add-hook 'kill-buffer-hook #'pt/check-file-modification)
 (advice-add 'magit-status :before #'tj/check-file-modification)
 (advice-add 'save-buffers-kill-terminal :before #'tj/check-file-modification)
+
+(use-package rainbow-mode)

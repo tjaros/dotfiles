@@ -1,26 +1,25 @@
-
-*.cursorColor:  #81A1C1
+*.cursorColor:  #CDCDCD
 *fading: 35
-*fadeColor: #D8DEE9
+*fadeColor: #CDCDCD
 
-*background:  #2E3440
-*foreground:  #ECEFF4
-*color0:  #434C5E
-*color1:  #BF616A
-*color2:  #A3BE8C
-*color3:  #EBCB8B
-*color4:  #81A1C1
-*color5:  #B48EAD
-*color6:  #88C0D0
-*color7:  #ECEFF4
-*color8:  #434C5E
-*color9:  #BF616A
-*color10:  #A3BE8C
-*color11:  #EBCB8B
-*color12:  #81A1C1
-*color13:  #B48EAD
+*background:  #000000
+*foreground:  #cdcdcd
+*color0:  #1c1c1c
+*color1:  #cc6666
+*color2:  #a1bf78
+*color3:  #e5c078
+*color4:  #7d8fa3
+*color5:  #9f7aa5
+*color6:  #8fafd7
+*color7:  #cdcdcd
+*color8:  #363636
+*color9:  #af5f5f
+*color10:  #a1bf78
+*color11:  #f4bf75
+*color12:  #8197bf
+*color13:  #aa759f
 *color14:  #88C0D0
-*color15:  #ECEFF4
-st.shell: /bin/zsh
+*color15:  #cdcdcd
+st.shell: /bin/fish
 
-st.font:	Fira Code Nerd Font Mono:pixelsize=14:antialias=true:autohint=true;
+st.font:	PragmataPro Mono Liga:pixelsize=16:antialias=true:autohint=true;
