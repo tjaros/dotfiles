@@ -94,21 +94,21 @@
 ;;Set default pitch face
 (set-face-attribute 'default nil :font "PragmataPro Mono Liga:pixelsize=16:antialias=true:autohint=true" )
 
-;; Set the fixed pitch face
-;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
+;;;; Set the fixed pitch face
+;;;; (set-face-attribute 'fixed-pitch nil :font "Fira Code Nerd Font:pixelsize=19")
 (set-face-attribute 'fixed-pitch nil :font "PragmataPro Mono Liga:pixelsize=16:antialias=true:autohint=true")
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga:pixelsize=20:antialias=true:autohint=true")
+;;;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga:pixelsize=22:antialias=true:autohint=true")
 ;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 
 ;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;;(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; General evil setup
 (use-package general
-  :init
-  (general-evil-setup t)
+;;  :init
+;;  (general-evil-setup t)
   :config
   (general-create-definer tj/leader-key-def
                           :keymaps '(normal insert visual emacs)
@@ -116,30 +116,41 @@
                           :global-prefix "C-SPC")
   (general-create-definer tj/ctrl-c-keys
                           :prefix "C-c"))
-;; Evil
-(use-package evil
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
-  :config
-  (evil-mode 1)
+;;Evil
+;;(use-package evil
+;;  :init
+;;  (setq evil-want-integration t)
+;;  (setq evil-want-keybinding nil)
+;;  (setq evil-want-C-u-scroll t)
+;;  (setq evil-want-C-i-jump nil)
+;;  :config
+;;  (evil-mode 1)
 
-  ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+;;  ;; Use visual line motions even outside of visual-line-mode buffers
+;;  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+;;  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+;;  (evil-set-initial-state 'messages-buffer-mode 'normal)
+;;  (evil-set-initial-state 'dashboard-mode 'normal))
 
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+(global-set-key (kbd "C-x k") 'kill-this-buffer)
+
+;;(use-package evil-collection
+;;  :after evil
+;;  :config
+;;  (evil-collection-init))
+
+(add-to-list 'load-path "~/.emacs.d/lisp/xah-fly-keys/")
+
+(require 'xah-fly-keys)
+
+;; specify a layout
+(xah-fly-keys-set-layout "qwerty")
+
+(xah-fly-keys 1)
 
 (setq-default tab-width 4)
-(setq-default evil-shift-width tab-width)
+;;(setq-default evil-shift-width tab-width)
 
 (defun tj/unbind-bad-keybindings ()
   "Remove unhelpful keybindings."
@@ -171,30 +182,6 @@
 (bind-key* "C-c /" #'comment-dwim)
 (bind-key* "C-c 0" #'upcase-dwim)
 
-(use-package smartparens
-  :bind (
-         ("C-c f" .     #'sp-forward-slurp-sexp)
-         ("C-c b" .     #'sp-backward-slurp-sexp)
-         ("C-c F" .     #'sp-forward-barf-sexp)
-         ("C-c B" .     #'sp-backward-barf-sexp)
-         ("C-c s" .     #'sp-splice-sexp))
-  :config
-  (require 'smartparens-config)
-  (setq sp-show-pair-delay 0
-        sp-show-pair-from-inside t)
-  (smartparens-global-mode)
-  (show-smartparens-global-mode t)
-  ;; (set-face-attribute 'sp-pair-overlay-face nil :background "#0E131D")
-  (defun indent-between-pair (&rest _ignored)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode))
-
-  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET"))))
-
 (add-hook 'before-save-hook 'whitespace-cleanup)
 (setq require-final-newline t)
 
@@ -219,7 +206,7 @@
 :load-path "~/.emacs.d/lisp/spaceway/"
 :config
 (global-hl-line-mode t)
-(set-cursor-color "#dc322f")
+(set-cursor-color "#cdcdcd");;dc32ff
 ;; (when my/my-system
 ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
 ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
@@ -331,10 +318,7 @@
   "f"  '(:ignore t  :which-key "find")
   "ff" '(find-file  :which-key "file")
   "fr" '(consult-recent-file :which-key "recent")
-  "fd" '(find-dired :which-key "dir")
-  "b"  '(:ignore t :which-key "buffer")
-  "bb"  '(consult-buffer :which-key "switch")
-  "bk"  '(kill-buffer :which-key "kill"))
+  "fd" '(find-dired :which-key "dir"))
 
 (use-package helpful
   :bind
@@ -359,6 +343,17 @@
 (tj/leader-key-def
   "w" '(ace-window :which-key "window"))
 
+(tj/leader-key-def
+"b"    '(:ignore t :which-key "buffer")
+
+"bb"   '(:ignore t :which-key "switch buffer")
+"bbb"  '(consult-buffer :which-key "here")
+"bbw"  '(consult-buffer-other-window :which-key "other window")
+"bbf"  '(consult-buffer-other-frame :which-key "other frame")
+
+"bk"  '(kill-buffer :which-key "kill")
+)
+
 (defun tj/org-font-setup ()
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
@@ -374,7 +369,7 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "PragmataPro Mono Liga:antialias=true:autohint=true" :weight 'regular :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -394,8 +389,20 @@
   :hook (org-mode . tj/org-mode-setup)
   :config
   (setq org-image-actual-width nil)
+  (setq org-startup-indented t)
   (setq org-ellipsis " ▾")
+  (setq tj/org-latex-scale 1.75)
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale tj/org-latex-scale))
+  (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
   (tj/org-font-setup))
+
+(tj/leader-key-def
+ "o"  '(:ignore t :which-key "org")
+ "ol" '(org-store-link :which-key "store link")
+ "oc" '(org-capture :which-key "capture")
+ "oa" '(org-agenda :which-key "agenda")
+ )
 
 (use-package org-bullets
   :after org
@@ -411,19 +418,16 @@
 (use-package visual-fill-column
   :hook (org-mode . tj/org-mode-visual-fill))
 
+;; Put timestamp on DONE tasks
+(setq org-agenda-files (list "~/org/Todos.org"))
+(setq org-log-done t)
+
 (org-babel-do-load-languages
     'org-babel-load-languages
     '((emacs-lisp . t)
       (python . t)))
-
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
-
-;; This is needed as of Org 9.2
-(require 'org-tempo)
-
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (setq org-confirm-babel-evaluate nil)
 
 ;; Automatically tangle our Emacs.org config file when we save it
 (defun tj/org-babel-tangle-config ()
@@ -438,6 +442,11 @@
 (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
 
 (use-package ob-async)
+
+(tj/leader-key-def
+  "of"  '(:ignore t :which-key "open file")
+  "oft" '((lambda () (interactive) (find-file "~/org/Todos.org")) :which-key "TODOs")
+  )
 
 (setq read-process-output-max (* 1024 1024 )) ; 1mb
 
@@ -477,15 +486,15 @@
   "lk"   '(lsp-bridge-kill-process :which-key "Kill all processes")
   )
 
-  (define-key evil-insert-state-map (kbd "C-n") 'acm-select-next)
-  (define-key evil-insert-state-map (kbd "C-p") 'acm-select-prev)
+  ;;(define-key evil-insert-state-map (kbd "C-n") 'acm-select-next)
+  ;;(define-key evil-insert-state-map (kbd "C-p") 'acm-select-prev)
 
-  (define-key evil-insert-state-map (kbd "C-,") 'acm-doc-scroll-down)
-  (define-key evil-insert-state-map (kbd "C-.") 'acm-doc-scroll-up)
-  (define-key evil-normal-state-map (kbd "C-,") 'lsp-bridge-popup-documentation-scroll-down)
-  (define-key evil-normal-state-map (kbd "C-.") 'lsp-bridge-popup-documentation-scroll-up)
+  ;;(define-key evil-insert-state-map (kbd "C-,") 'acm-doc-scroll-down)
+  ;;(define-key evil-insert-state-map (kbd "C-.") 'acm-doc-scroll-up)
+  ;;(define-key evil-normal-state-map (kbd "C-,") 'lsp-bridge-popup-documentation-scroll-down)
+  ;;(define-key evil-normal-state-map (kbd "C-.") 'lsp-bridge-popup-documentation-scroll-up)
 
-  (define-key evil-insert-state-map (kbd "C-d") 'acm-doc-toggle)
+  ;;(define-key evil-insert-state-map (kbd "C-d") 'acm-doc-toggle)
 
 
   (setq acm-enable-icon nil)
@@ -505,6 +514,11 @@
 
 (setq python-shell-interpreter "ipython"
         python-shell-interpreter-args "-i --simple-prompt --InteractiveShell.display_page=True")
+
+(use-package sphinx-doc)
+(add-hook 'python-mode-hook (lambda ()
+                                (require 'sphinx-doc)
+                                (sphinx-doc-mode t)))
 
 (use-package pyvenv
   :demand t
@@ -586,12 +600,13 @@
 
 (setq sendmail-program "/usr/bin/msmtp"
       send-mail-function #'smtpmail-send-it
-      message-sendmail-f-is-evil t
+      ;;message-sendmail-f-is-evil t
       message-sendmail-extra-arguments '("--read-envelope-from")
       message-send-mail-function #'message-send-mail-with-sendmail)
 
 (use-package mu4e
   :ensure nil
+  :defer 20
   :config
   ;; Load org-mode integration
   (require 'org-mu4e)
@@ -661,12 +676,12 @@
     (interactive)
     (mu4e-headers-search tj/mu4e-inbox-query))
 
-  (tj/leader-key-def
-    "m"  '(:ignore t :which-key "mail")
-    "mm" 'mu4e
-    "mc" 'mu4e-compose-new
-    "mi" 'tj/go-to-inbox
-    "ms" 'mu4e-update-mail-and-index)
+ (tj/leader-key-def
+   "m"  '(:ignore t :which-key "mail")
+   "mm" 'mu4e
+   "mc" 'mu4e-compose-new
+   "mi" 'tj/go-to-inbox
+   "ms" 'mu4e-update-mail-and-index)
 
   ;; Start mu4e in the background so that it syncs mail periodically
   (mu4e t))
