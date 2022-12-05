@@ -21,69 +21,83 @@
 (setq use-package-always-ensure t)
 
 ;; No GNU argitprop
-   (setq inhibit-startup-message t)
-   ;; No reminders what a scratch buffer is
-   (setq initial-scratch-message nil)
-   ;; No double spaces after periods
-   (setq sentence-end-double-space nil)
-   ;; Prompts in minibuffer not in GUI
-   (setq use-dialog-box nil)
-   ;; Ever copied something else and forgot?
-   (setq save-interprogram-paste-before-kill t)
-   ;; When I say you die you die !
-   (setq confirm-kill-processes nil)
-   ;; Native compilation report warnings , NOPE
-   (setq native-comp-async-report-warnings-errors 'silent)
-   ;; If i scroll cursor stays the same position
-   (setq scroll-preserve-screen-position t)
-   ;; Detailed completions
-   (setq completions-detailed t)
-   ;; don't let the minibuffer muck up my window tiling
-   (setq read-minibuffer-restore-windows t)
-   ;; scope save prompts to individual projects
-   (setq save-some-buffers-default-predicate 'save-some-buffers-root)
-   ;; don't keep duplicate entries in kill ring
-   (setq kill-do-not-save-duplicates t)
+(setq inhibit-startup-message t)
+;; No reminders what a scratch buffer is
+(setq initial-scratch-message nil)
+;; No double spaces after periods
+(setq sentence-end-double-space nil)
+;; Prompts in minibuffer not in GUI
+(setq use-dialog-box nil)
+;; Ever copied something else and forgot?
+(setq save-interprogram-paste-before-kill t)
+;; When I say you die you die !
+(setq confirm-kill-processes nil)
+;; Native compilation report warnings , NOPE
+(setq native-comp-async-report-warnings-errors 'silent)
+;; If i scroll cursor stays the same position
+(setq scroll-preserve-screen-position t)
+;; Detailed completions
+(setq completions-detailed t)
+;; don't let the minibuffer muck up my window tiling
+(setq read-minibuffer-restore-windows t)
+;; scope save prompts to individual projects
+(setq save-some-buffers-default-predicate 'save-some-buffers-root)
+;; don't keep duplicate entries in kill ring
+(setq kill-do-not-save-duplicates t)
 
 
 
 
-   (scroll-bar-mode -1)        ; Disable visible scrollbar
-   (tool-bar-mode -1)          ; Disable the toolbar
-   (tooltip-mode -1)           ; Disable tooltips
-   (set-fringe-mode 10)        ; Give some breathing room
-   (pixel-scroll-mode)
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+(pixel-scroll-mode)
 
-   (menu-bar-mode -1)          ; Disable the menu bar
+(menu-bar-mode -1)          ; Disable the menu bar
 
-   ;; Set up the visible bell
-   (setq visible-bell t)
-   ;; Line number
-   (column-number-mode)
-   ;; Enable line numbers for some modes
-   (dolist (mode '(text-mode-hook
-                   prog-mode-hook
-                   conf-mode-hook))
-     (add-hook mode (lambda () (display-line-numbers-mode 1))))
-   ;; Override some modes which derive from the above
-   (dolist (mode '(org-mode-hook))
-     (add-hook mode (lambda () (display-line-numbers-mode 0))))
+;; Set up the visible bell
+(setq visible-bell t)
+(setq ring-bell-function
+      (lambda ()
+        (unless (memq this-command
+                      '(isearch-abort
+                        abort-recursive-edit
+                        exit-minibuffer
+                        keyboard-quit
+                        previous-line
+                        next-line
+                        scroll-down
+                        scroll-up
+                        cua-scroll-down
+                        cua-scroll-up))
+          (ding))))
+;; Line number
+(column-number-mode)
+;; Enable line numbers for some modes
+(dolist (mode '(text-mode-hook
+                prog-mode-hook
+                conf-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 1))))
+;; Override some modes which derive from the above
+(dolist (mode '(org-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-  ;; UTF-8 is a priority
-  (set-charset-priority 'unicode)
-  (prefer-coding-system 'utf-8-unix)
+;; UTF-8 is a priority
+(set-charset-priority 'unicode)
+(prefer-coding-system 'utf-8-unix)
 
-  ;; Touchpad style scrolling & line truncation
-  (setq mouse-wheel-tilt-scroll t
+;; Touchpad style scrolling & line truncation
+(setq mouse-wheel-tilt-scroll t
       mouse-wheel-flip-direction t)
-  (setq-default truncate-lines t)
+(setq-default truncate-lines t)
 
-  (setq type-break-file-name nil)
-  (type-break-mode)
- ;; Compilation buffers should wrap lines
- (add-hook 'compilation-mode-hook 'visual-line-mode)
+(setq type-break-file-name nil)
+(type-break-mode)
+;; Compilation buffers should wrap lines
+(add-hook 'compilation-mode-hook 'visual-line-mode)
 
- ;; Tell me i should take break
+;; Tell me i should take break
 (setq type-break-file-name nil)
 (type-break-mode)
 
@@ -102,20 +116,6 @@
 (set-face-attribute 'variable-pitch nil :font "PragmataPro Mono Liga:pixelsize=22:antialias=true:autohint=true")
 ;;(set-face-attribute 'variable-pitch nil :font "Cantarell:pixelsize=22" :weight 'regular)
 
-;; Make ESC quit prompts
-;;(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-;; General evil setup
-(use-package general
-;;  :init
-;;  (general-evil-setup t)
-  :config
-  (general-create-definer tj/leader-key-def
-                          :keymaps '(normal insert visual emacs)
-                          :prefix "SPC"
-                          :global-prefix "C-SPC")
-  (general-create-definer tj/ctrl-c-keys
-                          :prefix "C-c"))
 ;;Evil
 ;;(use-package evil
 ;;  :init
@@ -146,8 +146,24 @@
 
 ;; specify a layout
 (xah-fly-keys-set-layout "qwerty")
-
 (xah-fly-keys 1)
+
+(defun tj/xfk-cmd-mode-n-quit ()
+  (interactive)
+  (xah-fly-command-mode-activate)
+  (keyboard-quit))
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'tj/xfk-cmd-mode-n-quit)
+(global-set-key (kbd "C-g") 'keyboard-escape-quit)
+
+;; Some macros may need line-move-visual turned off, but dont forget to turn it back on before end of macro
+(defun toggle-line-move-visual ()
+"Toggle behavior of up/down arrow key, by visual line vs logical line."
+(interactive)
+(if line-move-visual
+    (setq line-move-visual nil)
+  (setq line-move-visual t)))
 
 (setq-default tab-width 4)
 ;;(setq-default evil-shift-width tab-width)
@@ -314,11 +330,7 @@
 :init
 (all-the-icons-completion-mode))
 
-(tj/leader-key-def
-  "f"  '(:ignore t  :which-key "find")
-  "ff" '(find-file  :which-key "file")
-  "fr" '(consult-recent-file :which-key "recent")
-  "fd" '(find-dired :which-key "dir"))
+
 
 (use-package helpful
   :bind
@@ -335,24 +347,6 @@
   ("j" text-scale-increase "in")
   ("k" text-scale-decrease "out")
   ("f" nil "finished" :exit t))
-
-(tj/leader-key-def
-  "ts" '(hydra-text-scale/body :which-key "scale text"))
-
-(use-package ace-window)
-(tj/leader-key-def
-  "w" '(ace-window :which-key "window"))
-
-(tj/leader-key-def
-"b"    '(:ignore t :which-key "buffer")
-
-"bb"   '(:ignore t :which-key "switch buffer")
-"bbb"  '(consult-buffer :which-key "here")
-"bbw"  '(consult-buffer-other-window :which-key "other window")
-"bbf"  '(consult-buffer-other-frame :which-key "other frame")
-
-"bk"  '(kill-buffer :which-key "kill")
-)
 
 (defun tj/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -397,13 +391,6 @@
   (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
   (tj/org-font-setup))
 
-(tj/leader-key-def
- "o"  '(:ignore t :which-key "org")
- "ol" '(org-store-link :which-key "store link")
- "oc" '(org-capture :which-key "capture")
- "oa" '(org-agenda :which-key "agenda")
- )
-
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
@@ -443,10 +430,16 @@
 
 (use-package ob-async)
 
-(tj/leader-key-def
-  "of"  '(:ignore t :which-key "open file")
-  "oft" '((lambda () (interactive) (find-file "~/org/Todos.org")) :which-key "TODOs")
+(use-package org-roam
+  :init
+  (setq org-roam-v2-ack t)
   )
+(setq org-roam-directory (file-truename "~/org/notes"))
+(org-roam-db-autosync-mode)
+
+(plist-put org-format-latex-options :scale 2)
+
+(use-package ox-pandoc)
 
 (setq read-process-output-max (* 1024 1024 )) ; 1mb
 
@@ -463,28 +456,6 @@
 (require 'lsp-bridge)
 (global-lsp-bridge-mode)
 
-(tj/leader-key-def
-  "l"    '(:ignore t :which-key "lsp-bridge")
-
-  "lf"   '(:ignore t :which-key "Find")
-  "lfd"  '(:ignore t :which-key "Find definition")
-  "lfdd" '(lsp-bridge-find-def-other-window :which-key "Other window")
-  "lfdg" '(lsp-bridge-find-def :which-key "This window")
-  "lfi"  '(:ignore t :which-key "Find implementation")
-  "lfii" '(lsp-bridge-find-impl-other-window :which-key "Other window")
-  "lfig" '(lsp-bridge-find-impl :which-key "This window")
-  "lfr"  '(lsp-bridge-find-references :which-key "Find references")
-
-  "lr"   '(lsp-bridge-rename :which-key "Rename")
-  "ld"   '(lsp-bridge-popup-documentation :which-key "Popup documentation")
-
-  "ll"  '(:ignore t :which-key "Linter")
-  "lll" '(lsp-bridge-diagnostic-list :which-key "List diagnostic")
-  "lli" '(lsp-bridge-diagnostic-ignore :which-key "Ignore diagnostic")
-
-  "lp"   '(lsp-bridge-restart-process :which-key "Restart lsp-bridge")
-  "lk"   '(lsp-bridge-kill-process :which-key "Kill all processes")
-  )
 
   ;;(define-key evil-insert-state-map (kbd "C-n") 'acm-select-next)
   ;;(define-key evil-insert-state-map (kbd "C-p") 'acm-select-prev)
@@ -501,7 +472,7 @@
   (setq acm-candidate-match-function 'orderless-flex)
 
 (use-package yasnippet
-  :defer 1
+  :after lsp-bridge
   :diminish yas-minor-mode
   :config (yas-global-mode))
 
@@ -573,23 +544,14 @@
     (setq projectile-project-search-path '("~/dev")))
   (setq projectile-switch-project-action #'projectile-dired))
 
-(tj/leader-key-def
-  "p" 'projectile-command-map)
-
 (use-package magit
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(tj/leader-key-def
-  "g" '(:ignore t :which-key "git")
-  "gg" 'magit)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package darkroom)
-(tj/leader-key-def
-  "tz" '(darkroom-tentative-mode :which-key "zen mode"))
 
 (shut-up
 (use-package tree-sitter
@@ -676,12 +638,6 @@
     (interactive)
     (mu4e-headers-search tj/mu4e-inbox-query))
 
- (tj/leader-key-def
-   "m"  '(:ignore t :which-key "mail")
-   "mm" 'mu4e
-   "mc" 'mu4e-compose-new
-   "mi" 'tj/go-to-inbox
-   "ms" 'mu4e-update-mail-and-index)
 
   ;; Start mu4e in the background so that it syncs mail periodically
   (mu4e t))
@@ -691,8 +647,6 @@
 
 (use-package vterm
   :ensure t)
-(tj/leader-key-def
-  "<RET>" 'vterm)
 
 (setq warning-minimum-level :error)
 
