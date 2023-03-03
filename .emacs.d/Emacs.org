@@ -171,7 +171,7 @@
    (require 'xah-fly-keys)
 
    ;; specify a layout
-   (xah-fly-keys-set-layout "qwerty")
+   (xah-fly-keys-set-layout "dvorak")
    (xah-fly-keys 1)
 
    (defun tj/xfk-cmd-mode-n-quit ()
@@ -737,6 +737,13 @@
              "--cross-file-rename"
              "--suggest-missing-includes"))
 #+end_src
+*** R
+#+begin_src emacs-lisp
+  ;;git clone https://github.com/emacs-ess/ESS.git
+  (add-to-list 'load-path "~/.emacs.d/lisp/ESS/lisp")
+  (require 'ess-site)
+#+end_src
+
 ** Projectile
 #+begin_src emacs-lisp
   (use-package projectile
